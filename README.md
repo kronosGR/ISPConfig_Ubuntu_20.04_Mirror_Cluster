@@ -91,4 +91,102 @@ Change the hostname, in the example ns1 is the host nameservers
   hostname -f
 ```
 
+## Master Server Installation
+### Upgrade your system
+```
+sudo -s
+apt-get update
+apt-get upgrade
+reboot
 
+// after reboot run the command as root user. That's why
+sudo -s
+```
+
+### Change Shell
+```
+dpk dpkg-reconfigure dash
+```
+Select **No**
+
+### Disable AppArmor
+```
+service apparmor stop
+update-rc.d -f apparmor remove 
+apt-get remove apparmor apparmor-utils
+```
+
+### Synchronize System Clock
+```
+apt-get -y install ntp
+```
+
+### Uninstall sendmail
+```
+service sendmail stop; update-rc.d -f sendmail remove
+```
+If you received an error "Failed to stop..." then sendmail was not installed
+
+### Install Postfix, Dovecot, MariaDB, rkhunter and binutils
+```
+apt-get -y install postfix postfix-mysql postfix-doc mariadb-client mariadb-server openssl getmail4 rkhunter binutils dovecot-imapd dovecot-pop3d dovecot-mysql dovecot-sieve sudo patch
+```
+* Choose -> Internet site 
+* Enter -> ns1.lol.me
+
+Edit ports in Postfix:
+```
+nano /etc/postfix/master.cf
+```
+Uncomment the lines to be the same with the following:
+```
+submission inet n       -       y       -       -       smtpd
+  -o syslog_name=postfix/submission
+  -o smtpd_tls_security_level=encrypt
+  -o smtpd_sasl_auth_enable=yes
+  -o smtpd_tls_auth_only=yes
+  -o smtpd_client_restrictions=permit_sasl_authenticated,reject
+#  -o smtpd_reject_unlisted_recipient=no
+#  -o smtpd_client_restrictions=$mua_client_restrictions
+#  -o smtpd_helo_restrictions=$mua_helo_restrictions
+#  -o smtpd_sender_restrictions=$mua_sender_restrictions
+#  -o smtpd_recipient_restrictions=permit_sasl_authenticated,reject
+#  -o milter_macro_daemon_name=ORIGINATING
+smtps     inet  n       -       y       -       -       smtpd
+  -o syslog_name=postfix/smtps
+  -o smtpd_tls_wrappermode=yes
+  -o smtpd_sasl_auth_enable=yes
+  -o smtpd_client_restrictions=permit_sasl_authenticated,reject
+#  -o smtpd_reject_unlisted_recipient=no
+#  -o smtpd_client_restrictions=$mua_client_restrictions
+#  -o smtpd_helo_restrictions=$mua_helo_restrictions
+#  -o smtpd_sender_restrictions=$mua_sender_restrictions
+#  -o smtpd_recipient_restrictions=permit_sasl_authenticated,reject
+#  -o milter_macro_daemon_name=ORIGINATING
+```
+
+Restart Postfix
+```
+service postfix restart
+```
+
+Edit MariaDB config file to listen on all interfaces. 
+```
+nano /etc/mysql/mariadb.conf.d/50-server.cnf
+```
+Comment out the bind-address line
+```
+#bind-address           = 127.0.0.1
+```
+
+Set the root password for MariaDB
+```
+mysql_secure_installation
+```
+* Press Enter
+* Enter y for setting root password
+* Enter the new root password
+* Re-enter the new root password
+* Enter y to all the remaining questions
+
+Set the password ...
