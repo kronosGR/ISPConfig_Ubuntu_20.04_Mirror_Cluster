@@ -1,7 +1,26 @@
 # Ubuntu 20.04 - ISPConfig - Cluster Mirror
 
-## Install Ubuntu 20.04
+## Introduction
+Setup with 2 Ubuntu 20.04 servers with ISPConfig web host control panel with master and slave apache server, postfix & dovecot (email), bind dns server and MariaDB database server.
 
+There will be two servers, one master and one slave
+____________
+**Master Server**
+
+Hostname: ns1.lol.me
+
+IP-Address: 192.168.1.201
+______________
+**Slave Server**
+
+Hostname: ns2.lol.me
+
+IP-Address: 192.168.1.202
+______________
+
+
+## Install Ubuntu 20.04
+Install a server version of Ubuntu 20.04
 ## Get root privileges
 ```
     sudo -s
@@ -54,7 +73,7 @@ sudo nano /etc/hosts
 Make it look like this, change it to your wish
 ```
 127.0.0.1       localhost
-127.0.1.1       ns1.kandz.me ns1
+127.0.1.1       ns1.lol.me ns1
 
 # The following lines are desirable for IPv6 capable hosts
 ::1 localhost ip6-localhost ip6-loopback
