@@ -34,7 +34,7 @@ network:
     enp5s0:
       dhcp4: no
       dhcp6: no
-      addresses: [192.168.1.202/24]
+      addresses: [192.168.1.201/24]
       gateway4: 192.168.1.1
       nameservers:
         addresses: [8.8.8.8, 8.8.4.4]
@@ -53,11 +53,23 @@ sudo nano /etc/hosts
 
 Make it look like this, change it to your wish
 ```
-127.0.0.1 localhost
-192.168.0.100 server1.example.com server1
+127.0.0.1       localhost
+127.0.1.1       ns1.kandz.me ns1
 
 # The following lines are desirable for IPv6 capable hosts
 ::1 localhost ip6-localhost ip6-loopback
 ff02::1 ip6-allnodes
 ff02::2 ip6-allrouters
 ```
+
+Change the hostname, in the example ns1 is the host nameservers
+```
+  sudo echo ns1 > /etc/hostname
+  sudo hostname ns1
+
+  // verify the changes
+  hostname
+  hostname -f
+```
+
+
