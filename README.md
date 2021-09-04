@@ -342,3 +342,50 @@ a2enconf mailman
 service apache2 restart
 service mailman start
 ```
+
+### Install PureFTPd and Quota
+```
+apt-get -y install pure-ftpd-common pure-ftpd-mysql quota quotatool
+```
+
+... open the file
+```
+nano /etc/default/pure-ftpd-common
+```
+... check the following line to be the same
+```
+STANDALONE_OR_INETD=standalone
+[...]
+VIRTUALCHROOT=true
+```
+
+... allow FTP and TLS sessions
+```
+echo 1 > /etc/pure-ftpd/conf/TLS
+```
+... and create a SSL sertificate
+```
+mkdir -p /etc/ssl/private/
+openssl req -x509 -nodes -days 7300 -newkey rsa:2048 -keyout /etc/ssl/private/pure-ftpd.pem -out /etc/ssl/private/pure-ftpd.pem
+```
+... change the permissions of SSL certificate and restart FTPd
+```
+chmod 600 /etc/ssl/private/pure-ftpd.pem
+service pure-ftpd-mysql restart
+```
+
+Edit fstab file to add quota
+```
+nano /etc/fstab
+```
+
+... add **,usrjquota=quota.user,grpjquota=quota.group,jqfmt=vfsv0** after remount-ro at the root partiion
+```
+ / ext4 errors=remount-ro,usrjquota=quota.user,grpjquota=quota.group,jqfmt=vfsv0 0 1
+```
+...enable quota
+```
+mount -o remount /
+quotacheck -avugm
+quotaon -avug
+```
