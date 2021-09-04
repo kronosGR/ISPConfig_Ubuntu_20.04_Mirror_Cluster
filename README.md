@@ -1,4 +1,4 @@
-# Ubuntu 20.04 - ISPConfig - Cluster Mirror
+# Ubuntu 20.04 - ISPConfig - Cluster Mirror (Still working on it!!!)
 
 ## Introduction
 Setup with 2 Ubuntu 20.04 servers with ISPConfig web host control panel with master and slave apache server, postfix & dovecot (email), bind dns server and MariaDB database server.
@@ -189,4 +189,51 @@ mysql_secure_installation
 * Re-enter the new root password
 * Enter y to all the remaining questions
 
-Set the password ...
+Set the password authenticatoin method to Native, useful for PHPMyAdmin
+```
+echo "update mysql.user set plugin = 'mysql_native_password' where user='root';" | mysql -u root
+```
+
+Edit debian config file and set the DB's root password twice after **password =**
+```
+nano /etc/mysql/debian.cnf
+```
+
+Edit the scurity limits configuration file
+```
+nano /etc/security/limits.conf
+```
+Add the following line to the end of the file
+```
+mysql soft nofile 65535
+mysql hard nofile 65535
+```
+
+Configure the Mysql service
+```
+mkdir /etc/systemd/system/mysql.service.d/
+nano /etc/systemd/system/mysql.service.d/limits.conf
+```
+... and add the following lines
+```
+[Service]
+LimitNOFILE=infinity
+```
+... restart the services
+```
+systemctl daemon-reload
+service mariadb restart
+```
+
+... check that networking is enabled
+```
+netstat -tap | grep mysql
+```
+
+
+
+
+
+
+
+
