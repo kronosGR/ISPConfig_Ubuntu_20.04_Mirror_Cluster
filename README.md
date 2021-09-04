@@ -231,9 +231,57 @@ netstat -tap | grep mysql
 ```
 
 
+### Install Amasivd-new, SpamAssassin and Clamav
+```
+apt-get -y install amavisd-new spamassassin clamav clamav-daemon unzip bzip2 arj nomarch lzop cabextract apt-listchanges libnet-ldap-perl libauthen-sasl-perl clamav-docs daemon libio-string-perl libio-socket-ssl-perl libnet-ident-perl zip libnet-dns-perl postgrey
+```
 
+Stop SpamAssassin
+```
+service spamassassin stop
+update-rc.d -f spamassassin remove
+```
 
+Start Clamav
+```
+freshclam
+service clamav-daemon start
+```
+*Error for first freshclam at the first use can be ignored*
 
+### Install Apache, PHP, phpMyAdmin, FCGI, SuExec, Pear
+```
+apt-get -y install apache2 apache2-doc apache2-utils libapache2-mod-php php7.4 php7.4-common php7.4-gd php7.4-mysql php7.4-imap phpmyadmin php7.4-cli php7.4-cgi libapache2-mod-fcgid apache2-suexec-pristine php-pear libruby libapache2-mod-python php7.4-curl php7.4-intl php7.4-pspell php7.4-sqlite3 php7.4-tidy php7.4-xmlrpc php7.4-xsl memcached php-memcache php-imagick php7.4-zip php7.4-mbstring php-soap php7.4-soap php7.4-opcache php-apcu php7.4-fpm libapache2-reload-perl
+```
+* Choose **apache2**
+* Choose **Yes** to configure phpmyadmin with dbconfig-common
+* **Press Enter** for password for phpmyadmin
+  
+Enable some Apache modules
+```
+a2enmod suexec rewrite ssl actions include cgi alias proxy_fcgi
+a2enmod dav_fs dav auth_digest headers
+```
 
+... disable HTTPOXY
+```
+nano /etc/apache2/conf-available/httpoxy.conf
+```
 
+... add the following 
+```
+<IfModule mod_headers.c>
+    RequestHeader unset Proxy early
+</IfModule>
+```
+
+... enable the config file
+```
+a2enconf httpoxy
+```
+
+... restart Apache
+```
+service apache2 restart
+```
 
