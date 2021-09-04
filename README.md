@@ -285,3 +285,60 @@ a2enconf httpoxy
 service apache2 restart
 ```
 
+### Install Let's Encrypt
+```
+apt-get install -y certbot
+```
+
+### Install Mailman
+```
+apt-get -y install mailman
+```
+* Select at least one language
+* **OK** on missing site list
+
+... create a mail list
+```
+newlist mailman
+```
+* Enter admin email address
+* Enter a mailman password
+* Press **ENTER**
+
+... open tha aliases file  
+```
+nano /etc/aliases
+```
+
+... and add the lines
+```
+## mailman mailing list
+mailman:              "|/var/lib/mailman/mail/mailman post mailman"
+mailman-admin:        "|/var/lib/mailman/mail/mailman admin mailman"
+mailman-bounces:      "|/var/lib/mailman/mail/mailman bounces mailman"
+mailman-confirm:      "|/var/lib/mailman/mail/mailman confirm mailman"
+mailman-join:         "|/var/lib/mailman/mail/mailman join mailman"
+mailman-leave:        "|/var/lib/mailman/mail/mailman leave mailman"
+mailman-owner:        "|/var/lib/mailman/mail/mailman owner mailman"
+mailman-request:      "|/var/lib/mailman/mail/mailman request mailman"
+mailman-subscribe:    "|/var/lib/mailman/mail/mailman subscribe mailman"
+mailman-unsubscribe:  "|/var/lib/mailman/mail/mailman unsubscribe mailman"
+```
+
+... then 
+```
+newaliases
+service postfix restart
+```
+
+... enable the Mailman Apache configuration
+```
+ln -s /etc/mailman/apache.conf /etc/apache2/conf-available/mailman.conf
+```
+
+... activate the configuration and restart apache and mailman
+```
+a2enconf mailman
+service apache2 restart
+service mailman start
+```
