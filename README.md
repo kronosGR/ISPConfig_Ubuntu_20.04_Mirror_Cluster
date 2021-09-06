@@ -423,3 +423,8 @@ nano /etc/cron.d/awstats
 # Generate static reports:
 #10 03 * * * www-data [ -x /usr/share/awstats/tools/buildstatic.sh ] && /usr/share/awstats/tools/buildstatic.sh
 ```
+
+### Install Jailkit
+```
+apt-get -y install jailkit
+```
