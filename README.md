@@ -400,3 +400,26 @@ apt-get -y install bind9 dnsutils haveged
 systemctl enable haveged
 systemctl start haveged
 ```
+
+### Install Vlogger, Webalizer, AWStats and GoAccess
+```
+echo "deb https://deb.goaccess.io/ $(lsb_release -cs) main" | sudo tee -a /etc/apt/sources.list.d/goaccess.list
+
+wget -O - https://deb.goaccess.io/gnugpg.key | sudo apt-key --keyring /etc/apt/trusted.gpg.d/goaccess.gpg add -
+
+apt-get -y install vlogger webalizer awstats geoip-database libclass-dbi-mysql-perl goaccess
+```
+
+... edit awstats
+```
+nano /etc/cron.d/awstats
+```
+... and comment out everything
+```
+#MAILTO=root
+
+#*/10 * * * * www-data [ -x /usr/share/awstats/tools/update.sh ] && /usr/share/awstats/tools/update.sh
+
+# Generate static reports:
+#10 03 * * * www-data [ -x /usr/share/awstats/tools/buildstatic.sh ] && /usr/share/awstats/tools/buildstatic.sh
+```
