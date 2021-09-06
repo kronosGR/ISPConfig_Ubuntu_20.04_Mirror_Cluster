@@ -389,3 +389,14 @@ mount -o remount /
 quotacheck -avugm
 quotaon -avug
 ```
+
+### Install BIND DNS Server
+```
+apt-get -y install bind9 dnsutils haveged
+```
+
+... enable and start haveged Daemon
+```
+systemctl enable haveged
+systemctl start haveged
+```
