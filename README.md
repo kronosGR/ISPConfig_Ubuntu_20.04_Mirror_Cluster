@@ -501,3 +501,39 @@ $config['default_host'] = 'localhost';
 $config['smtp_server'] = 'localhost';
 $config['smtp_port']  = 25;
 ```
+
+### Install ISPConfig
+```
+cd /tmp 
+
+wget -O ispconfig.tar.gz https://www.ispconfig.org/downloads/ISPConfig-3-stable.tar.gz
+
+tar xfz ispconfig.tar.gz
+cd ispconfig3*/install/
+php -q install.php
+```
+* Press **Enter** to select En
+* Press **Enter** to select Standard
+* Press **Enter** to select the FQDN if is correct
+* Press **Enter** to select localhost
+* Press **Enter** to select 3306
+* Press **Enter** to select root 
+* Specify your MySQL root password
+* Press **Enter** to select dbispconfig
+* Press **Enter** to select utf8
+
+... answer the questions about the certificate
+
+* Press **Enter** to select 8080 port
+* Specify admin password
+* Re-type admin password
+* Press **Enter** to select y and use SSL
+* Press **Enter** to n
+
+... answer the questions about the certificate
+
+* Press **Enter** to select y
+* Press **Enter** to select y
+
+You can access ISPConfig under http(s)://192.168.1.201
+
