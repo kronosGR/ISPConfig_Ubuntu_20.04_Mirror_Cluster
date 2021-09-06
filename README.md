@@ -466,3 +466,38 @@ maxretry = 3
 service fail2ban restart
 apt-get install ufw
 ```
+
+### Install RoundCube Webemail
+```
+apt-get -y install roundcube roundcube-core roundcube-mysql roundcube-plugins roundcube-plugins-extra javascript-common libjs-jquery-mousewheel php-net-sieve tinymce
+```
+* **Yes** at configuring roundcube-core
+* **Press Enter** at MySQL application password prompt
+
+... edit the roundcube apache configuration file
+```
+nano /etc/apache2/conf-enabled/roundcube.conf
+```
+... uncomment and add 2 lines
+```
+        Alias /roundcube /var/lib/roundcube
+        Alias /webmail /var/lib/roundcube
+<Directory /var/lib/roundcube/>
+AddType application/x-httpd-php .php
+```
+
+... restart apache
+```
+service apache2 restart
+```
+
+... edit config.inc.php for roundcube
+```
+nano /etc/roundcube/config.inc.php
+```
+... edit the following lines to be the same
+```
+$config['default_host'] = 'localhost';
+$config['smtp_server'] = 'localhost';
+$config['smtp_port']  = 25;
+```
