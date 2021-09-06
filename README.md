@@ -535,5 +535,16 @@ php -q install.php
 * Press **Enter** to select y
 * Press **Enter** to select y
 
-You can access ISPConfig under http(s)://192.168.1.201
+You can access ISPConfig under https://192.168.1.201
 
+### Add the slave server to the hosts file
+```
+/etc/hosts
+```
+
+... it should look like:
+```
+127.0.0.1       localhost
+192.168.1.201   ns1.lol.me ns1
+192.168.1.202   ns2.lol.me    
+```
