@@ -428,3 +428,41 @@ nano /etc/cron.d/awstats
 ```
 apt-get -y install jailkit
 ```
+
+### Install fail2ban and UFW
+```
+apt-get -y install fail2ban
+```
+... create the file /etc/fail2ban/jail.local
+```
+nano /etc/fail2ban/jail.local
+```
+... and add the following
+```
+[pure-ftpd]
+enabled  = true
+port     = ftp
+filter   = pure-ftpd
+logpath  = /var/log/syslog
+maxretry = 3
+
+[dovecot]
+enabled = true
+filter = dovecot
+action = iptables-multiport[name=dovecot-pop3imap, port="pop3,pop3s,imap,imaps", protocol=tcp]
+logpath = /var/log/mail.log
+maxretry = 5
+
+[postfix]
+enabled  = true
+port     = smtp
+filter   = postfix
+logpath  = /var/log/mail.log
+maxretry = 3
+```
+
+... restart fail2ban and install UFW
+```
+service fail2ban restart
+apt-get install ufw
+```
