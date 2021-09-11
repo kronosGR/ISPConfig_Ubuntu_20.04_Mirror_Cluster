@@ -962,9 +962,9 @@ $config['smtp_port']  = 25;
 
 
 
-### Add the slave server to the hosts file
+### Add the Master server to the hosts file
 ```
-/etc/hosts
+nano /etc/hosts
 ```
 
 ... it should look like:
@@ -973,3 +973,146 @@ $config['smtp_port']  = 25;
 192.168.1.201   ns1.lol.me ns1
 192.168.1.202   ns2.lol.me    
 ```
+
+## Configure keyless login from master to slave
+**slave**
+```
+nano /etc/ssh/sshd_config
+```
+
+change **PermitRootLogin** to
+```
+PermitRootLogin yes
+```
+
+restart ssh server
+```
+service ssh restart
+```
+
+**master**
+
+create publir/private key pair 
+```
+ssh-keygen
+```
+... press *Enter* to all questions. Then copy the public key to slave server
+```
+ssh-copy-id -i /root/.ssh/id_rsa.pub root@192.168.1.202
+```
+ * Type *yes* and press **Enter*
+ * Enter the password from the slave server
+
+... login to slave server from master server
+```
+ssh 'root@192.168.1.202'
+```
+
+... check the authorized keys
+```
+cat /root/.ssh/authorized_keys
+```
+
+... disallow root-login with password
+```
+nano /etc/ssh/sshd_config
+```
+... and change PermitRootLogin
+```
+PermitRootLogin without-password
+```
+
+... restart ssh server and logout from slave server
+```
+service ssh restart
+exit
+```
+
+## Prepare MySQL Master-Master Replication
+```
+mysql -u root -p
+```
+... Enter the root password. Now create users for slave server
+```
+CREATE USER 'slaveuser2'@'ns2.lol.me' IDENTIFIED BY 'slave_user_password';
+CREATE USER 'slaveuser2'@'192.168.1.202' IDENTIFIED BY 'slave_user_password';
+```
+
+... Grant the replication slave privilege
+```
+GRANT REPLICATION SLAVE ON *.* TO 'slaveuser2'@'ns2.lol.me';
+GRANT REPLICATION SLAVE ON *.* TO 'slaveuser2'@'192.168.1.202';
+QUIT;
+```
+
+... edit MySQL configuration
+```
+nano /etc/mysql/my.cnf
+```
+
+... add the following 
+```
+[mysqld]
+server-id                = 1
+replicate-same-server-id = 0
+auto-increment-increment = 2
+auto-increment-offset    = 1
+log_bin                  = mysql-bin.log
+expire_logs_days         = 10
+max_binlog_size          = 100M
+binlog_format            = mixed
+sync_binlog              = 1
+relay-log                = slave-relay.log
+relay-log-index          = slave-relay-log.index
+slave_skip_errors        = 1007,1008,1050, 1396
+bind-address             = ::
+```
+
+... restart MySQL
+```
+service mysql restart
+```
+
+... login to slave server
+```
+ssh 'root@192.168.1.202'
+```
+... edit MySQL configuration
+```
+nano /etc/mysql/my.cnf
+```
+... add the following
+```
+[mysqld]
+server-id                = 2
+log_bin                  = mysql-bin.log
+expire_logs_days         = 10
+max_binlog_size          = 100M
+binlog_format            = mixed
+sync_binlog              = 1
+slave_skip_errors        = 1007,1008,1050, 1396
+```
+
+... back to master server
+```
+exit
+```
+
+... dump the databases. Enter the root password
+```
+mysqldump -p --all-databases --allow-keywords --master-data --events --single-transaction > /root/mysqldump.sql
+```
+
+... copy the file to slave
+```
+scp /root/mysqldump.sql root@192.168.1.202:/root
+```
+
+... import the dumb file to slave server. 
+```
+# Login to slave server
+ssh 'root@192.168.1.202'
+# dumb the file
+mysql -u root -p < /root/mysqldump.sql
+```
+... enter the root password. Now stop MySQL server
