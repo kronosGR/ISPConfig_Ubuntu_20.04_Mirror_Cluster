@@ -1115,4 +1115,34 @@ ssh 'root@192.168.1.202'
 # dumb the file
 mysql -u root -p < /root/mysqldump.sql
 ```
-... enter the root password. Now stop MySQL server
+... enter the root password. 
+... Now stop MySQL server
+```
+service mysql stop
+```
+Master Server - copy defaults server to slave server
+```
+scp /etc/mysql/debian.cnf root@192.168.1.202:/etc/mysql/debian.cnf
+```
+Slave Server - start MySQL
+```
+service mysql start
+```
+
+... login to mysql and set the master-server
+```
+mysql -u root -p
+
+CHANGE MASTER TO MASTER_HOST="ns1.lol.me", MASTER_USER="slaveuser2", MASTER_PASSWORD="slave_user_password";
+
+START SLAVE;
+
+SHOW SLAVE STATUS \G;
+```
+... wait until **Seconds Behind Master** is 0. You can also check the status for the master server
+```
+SHOW MASTER STATUS \G
+```
+
+## MySQL Master-Master Replication
+
