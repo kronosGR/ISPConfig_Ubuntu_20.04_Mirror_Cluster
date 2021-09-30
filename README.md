@@ -1145,4 +1145,58 @@ SHOW MASTER STATUS \G
 ```
 
 ## MySQL Master-Master Replication
+**Master** Create the user for the replication and grant access
+```
+CREATE USER 'slaveuser1'@'ns1.lol.me' IDENTIFIED BY '123456';
+CREATE USER 'slaveuser1'@'192.168.1.201' IDENTIFIED BY '123456';
+GRANT REPLICATION SLAVE ON *.* TO 'slaveuser1'@'ns1.lol.me'; 
+GRANT REPLICATION SLAVE ON *.* TO 'slaveuser1'@'192.168.1.201';
+QUIT;
+```
 
+**Slave** change the config file and the following at the *[mysqld]* section
+```
+nano /etc/mysql/my.cnf
+```
+```
+replicate-same-server-id = 0
+auto-increment-increment = 2
+auto-increment-offset    = 2
+relay-log                = slave-relay.log
+relay-log-index          = slave-relay-log.inde
+```
+
+... restart MySQL on slave server
+```
+service mysql restart
+```
+
+... login to MySQL and get the Master Binary Log Coordinates
+```
+mysql -u root -p
+// enter the password
+SHOW MASTER STATUS \G
+```
+... write down the File and Position values.
+
+*Master* Login to MySQL
+```
+mysql -u root -p
+```
+... set the master server with
+```
+CHANGE MASTER TO MASTER_HOST="ns2.lol.me", MASTER_USER="slaveuser1", MASTER_PASSWORD="123456", MASTER_LOG_FILE='mysql-bin.000002', MASTER_LOG_POS=328;
+```
+
+**Slave** start the slave
+```
+START SLAVE;
+// if there is an error try first RESET SLAVE;
+```
+... check the slave status with 
+```
+SHOW SLAVE STATUS \G
+```
+... you should see -> 
+ *Slave_IO_Running: Yes* and 
+  *Slave_SQL_Running: Yes*
