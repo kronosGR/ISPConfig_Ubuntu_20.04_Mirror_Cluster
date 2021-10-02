@@ -1200,3 +1200,70 @@ SHOW SLAVE STATUS \G
 ... you should see -> 
  *Slave_IO_Running: Yes* and 
   *Slave_SQL_Running: Yes*
+
+## Install ISPConfig on the Slave Server
+**Slave and Master** Login to MySQL and create root user
+```
+CREATE USER 'root'@'192.168.1.202' IDENTIFIED BY '123456';
+
+GRANT ALL PRIVILEGES ON * . * TO 'root'@'192.168.1.202' WITH GRANT OPTION MAX_QUERIES_PER_HOUR 0 MAX_CONNECTIONS_PER_HOUR 0 MAX_UPDATES_PER_HOUR 0 MAX_USER_CONNECTIONS 0;
+
+CREATE USER 'root'@'ns2.lol.me' IDENTIFIED BY '123456';
+
+GRANT ALL PRIVILEGES ON * . * TO 'root'@'ns2.lol.me' WITH GRANT OPTION MAX_QUERIES_PER_HOUR 0 MAX_CONNECTIONS_PER_HOUR 0 MAX_UPDATES_PER_HOUR 0 MAX_USER_CONNECTIONS 0;
+
+QUIT;
+```
+
+**Master** Copy db-configs for PHPMyAdmin and roundcube from Master(ns1) to Slave(ns2)
+```
+scp /etc/dbconfig-common/phpmyadmin.conf root@192.168.1.202:/etc/dbconfig-common/phpmyadmin.conf
+
+scp /etc/phpmyadmin/config-db.php root@192.168.1.202:/etc/phpmyadmin/config-db.php
+
+scp /etc/dbconfig-common/roundcube.conf root@192.168.1.202:/etc/dbconfig-common/roundcube.conf
+
+scp /etc/roundcube/debian-db.php root@192.168.1.202:/etc/roundcube/debian-db.php
+```
+
+**Slave** Download and Install ISPConfig
+```
+cd /tmp
+wget -O ISPConfig-3.1-beta.tar.gz  https://git.ispconfig.org/ispconfig/ispconfig3/repository/archive.tar.gz?ref=stable-3.1
+tar xfvz ISPConfig-3.1-beta.tar.gz
+cd ispconfig3-stable-3.1*
+cd install
+php -q install.php
+```
+* Language - *Enter*
+* Installation Mode - *Expert*
+* FQDN - *Enter*
+* MySQL hostname - *Enter*
+* MySQL port - *Enter*
+* MySQL username - *Enter*
+* MySQL password - *Enter*
+* MySQL Database to create - *dbispconfig2*
+* MySQL charset - *Enter*
+* ISPConfig MySQL username - *ispconfig2*
+* ISPConfig mysql database password - *Enter*
+* ISPConfig multiserver setup - *y*
+* MySQL master hostname- *ns1.lol.me*
+* MySQL master - *Enter*
+* MySQL master root username [root]: - *Enter*
+* MySQL master root password []: - *root password of the master server*
+* MySQL master database name [dbispconfig]: - *Enter*
+* Configure Mail - *Enter*
+* Enter the information for new private key
+* Rspamd - *Enter*
+* DNS Server - *Enter*
+* BIND DNS Server - *Enter*
+* OpenVZ - *Enter*
+* Firewall Server - *Enter*
+* ISPConfig Web Interface - *Enter*
+
+*ISPConfig Interface on ns1.lol.me:8080 or with the IP 192.168.1.201:8080 User name admin and password the one you used while installing the master server
+... navigate to *System / Server Services*
+... choose the 2nd server and set it *Is mirror of Server* and choose the first server
+... navigate to *Server Config / web(tab menu)* and on every server enable all option in Persmissions category, except the first one.
+
+## Install Unison
