@@ -1,4 +1,4 @@
-# Ubuntu 20.04 - ISPConfig - Cluster Mirror (Still working on it!!!)
+# Ubuntu 20.04 - ISPConfig - Cluster Mirror 
 
 ## Introduction
 Setup with 2 Ubuntu 20.04 servers with ISPConfig web host control panel with master and slave apache server, postfix & dovecot (email), bind dns server and MariaDB database server.
@@ -1423,4 +1423,143 @@ crontab -e
 ... add the job
 ```
 *  * * * *  /root/scripts/unison.sh > /dev/null
+```
+
+## Sync Emails with Dovecot
+**Master** open the configuration file 
+```
+nano /etc/dovecot/dovecot-sql.conf
+```
+... change
+```
+#iterate_query = SELECT email as user FROM mail_user
+```
+... with
+```
+iterate_query = SELECT email as user FROM mail_user
+```
+... Open dovecot.conf
+```
+nano /etc/dovecot/dovecot.conf
+```
+... and add the following
+```
+# Enable the replication plugin globally
+mail_plugins = $mail_plugins notify replication quota
+
+# Both the client and the server need to have a shared secret
+doveadm_password = replication_password
+
+# configure how many dsyncs can be run in parallel (10 by default)
+replication_max_conns = 10
+
+service aggregator {
+        fifo_listener replication-notify-fifo {
+                user = vmail
+                mode = 0666
+        }
+
+        unix_listener replication-notify {
+                user = vmail
+                mode = 0666
+        }
+}
+
+service replicator {
+        unix_listener replicator-doveadm {
+                mode = 0666
+        }
+}
+
+service doveadm {
+        user = vmail
+        inet_listener {
+                port = 4711
+        }
+}
+
+service config {
+        unix_listener config {
+                user = vmail
+        }
+}
+
+# use tcp:ip as the dsync target
+plugin {
+        replication_full_sync_interval = 1 hours
+        mail_replica = tcp:192.168.1.202:4711
+}
+
+protocol imap {
+        mail_plugins = quota imap_quota notify replication
+}
+```
+... restart dovecot
+```
+service dovecot restart
+```
+
+**Slave** Open dovecot-sql.conf
+```
+nano /etc/dovecot/dovecot-sql.conf
+```
+... Open dovecot.conf
+```
+nano /etc/dovecot/dovecot.conf
+```
+... and add the following
+```
+# Enable the replication plugin globally
+mail_plugins = $mail_plugins notify replication quota
+
+# Both the client and the server need to have a shared secret
+doveadm_password = replication_password
+
+# configure how many dsyncs can be run in parallel (10 by default)
+replication_max_conns = 10
+
+service aggregator {
+        fifo_listener replication-notify-fifo {
+                user = vmail
+                mode = 0666
+        }
+
+        unix_listener replication-notify {
+                user = vmail
+                mode = 0666
+        }
+}
+
+service replicator {
+        unix_listener replicator-doveadm {
+                mode = 0666
+        }
+}
+
+service doveadm {
+        user = vmail
+        inet_listener {
+                port = 4711
+        }
+}
+
+service config {
+        unix_listener config {
+                user = vmail
+        }
+}
+
+# use tcp:ip as the dsync target
+plugin {
+        replication_full_sync_interval = 1 hours
+        mail_replica = tcp:192.168.1.201:4711
+}
+
+protocol imap {
+        mail_plugins = quota imap_quota notify replication
+}
+```
+... restart Dovecot
+```
+service dovecot restart
 ```
